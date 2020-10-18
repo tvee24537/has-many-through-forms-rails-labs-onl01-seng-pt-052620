@@ -1,32 +1,46 @@
-<h2><%= @post.title %></h2>
-<%= @post.content %>
-<h3>Categories</h3>
-<% @post.categories.each do |category| %>
-  <%= link_to category.name, category %>
-<% end %>
+<h1><%= @post.title %></h1>
+<p><%= @post.content %></p>
 
-<h3>Comments</h3>
+<h3>Categories:</h3>
 <ul>
-  <% @post.comments.each do |comment| %>
-    <li><%= comment.user.username %> says: <%= comment.content %></li>
-  <% end %>
+	<% @post.categories.each do |c| %>
+		<li><%= c.name %></li>
+	<% end %>
 </ul>
 
-<h3>All Commenters</h3>
-<ul>
-<% @post.users.uniq.each do |user| %>
-  <li><%= link_to user.username, user %></li>
-<% end %>
-</ul>
 
-<h3>Add a Comment</h3>
-<%= form_for @post.comments.build do |f| %>
-  <%= f.label "Content" %>
-  <%= f.text_field :content %>
-  <%= f.collection_select :user_id, User.all, :id, :username, include_blank: 'Choose a User' %>
-  <%= f.hidden_field :post_id %>
-  <%= f.fields_for :user, @post.comments.last.build_user do |user_fields| %>
-    <%= user_fields.text_field :username %>
-  <% end %>
-  <%= f.submit %>
-<% end %>
+<h3>Comments:</h3>	
+	<% @post.users.uniq.each do |user| %>
+		<%= link_to user.username, user_path(user) %>
+		<ul>
+			<% user.comments.each do |comment| %>
+				<% if @post.comments.include?(comment) %>
+					  <li><%= "says: #{comment.content}" %></li>
+				<% end %>
+			<% end %>
+		</ul>
+	<% end %>
+
+<fieldset>
+	<legend>Comment Section</legend>
+	<%= form_for(Comment.new) do |f| %>
+		<%= f.hidden_field :post_id, :value => @post.id %>
+		<div>
+			<%= f.label :content, "Comment" %><br>
+			<%= f.text_area :content %>
+		</div>
+
+		<div>
+			<%= f.collection_select :user_id, User.all, :id, :username, include_blank: "New User"%> 
+		</div>
+
+		<div>	
+			<p>If a New User, Create Username below.</p>
+			<%= f.fields_for :user, User.new do |user_builder| %>
+				<%= user_builder.label :username %>
+				<%= user_builder.text_field :username %>
+			<% end %>
+		</div>
+		<%= f.submit %>
+	<% end %>
+</fieldset>
